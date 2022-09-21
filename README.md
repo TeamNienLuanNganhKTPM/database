@@ -1,5 +1,3 @@
-there is an invisible count column in every table except CHI_TIET_MON_AN to get value for auto id.
-CHI_TIET_MON_AN use 
 1. LOAI_MON_AN 
 - LMA_MALOAI varchar (10) -> varchar 11, id = LMA + 8 number '^LMA[0-9]{1,8}$'
 - LMA_TENLOAI nullable -> (unique_not in pd) not null
