@@ -1,6 +1,7 @@
 use nien_luan;
 drop table if exists DANH_GIA;
 drop table if exists TRA_LOI_BL;
+drop table if exists NHAN_VIEN_PHU_TRACH;
 drop table if exists BINH_LUAN;
 drop table if exists dia_chi;
 drop table if exists khach_hang;
@@ -212,7 +213,7 @@ end |
 DELIMITER ;
 #select * from DIA_CHI;
 #call THEM_DIA_CHI (1,'Đường abc','Phường xzy','Quận dfy','36C');
-call THEM_DIA_CHI (1,'Đường abc','Phường xzy','Quận dfy','36C');
+#call THEM_DIA_CHI (1,'Đường abc','Phường xzy','Quận dfy','36C');
 #call THEM_DIA_CHI (2,'Đường ewas','Phường rwa','Quận asx','52F');
 ##################################
 create table NHAN_VIEN_PHU_TRACH(
