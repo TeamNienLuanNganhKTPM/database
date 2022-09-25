@@ -1,4 +1,5 @@
 use nien_luan;
+drop procedure if exists THEM_DIA_CHI;
 drop table if exists DANH_GIA;
 drop table if exists TRA_LOI_BL;
 drop table if exists NHAN_VIEN_PHU_TRACH;
@@ -10,6 +11,41 @@ drop table if exists MA_MON_AN;
 drop table if exists CHI_TIET_MON_AN;
 drop table if exists mon_an;
 drop table if exists loai_mon_an;
+create table LOAI_MON_AN(
+	count int invisible,
+    LMA_MALOAI varchar(11)  constraint LMA_MALOAI_format check (regexp_like(LMA_MALOAI,'^LMA[0-9]{1,8}$' )),
+    LMA_TENLOAI varchar(15) unique not null,
+    LMA_MOTA tinytext,
+    primary key (LMA_MALOAI)
+);
+#select * from loai_mon_an;
+#drop table LOAI_MON_AN;
+################################
+drop procedure if exists THEM_LOAI_MON_AN;
+DELIMITER |
+create procedure THEM_LOAI_MON_AN(
+    LMA_TENLOAI varchar(15),
+	LMA_MOTA tinytext
+    )
+ begin
+	DECLARE countvar int;
+	IF(EXISTS(SELECT count FROM loai_mon_an ORDER BY count DESC LIMIT 1 )) THEN
+    SET countvar= ((SELECT count FROM loai_mon_an ORDER BY count DESC LIMIT 1) + 1) ;
+	ELSE SET countvar= 1 ;
+    END IF;
+    insert into LOAI_MON_AN (count, LMA_MALOAI, LMA_TENLOAI,LMA_MOTA) values 
+    (countvar, concat('LMA',countvar), LMA_TENLOAI, LMA_MOTA);
+end |
+DELIMITER ;
+#truncate loai_mon_an;
+#call THEM_LOAI_MON_AN('Món nướng','Đây là mô tả của món nướng');
+#call THEM_LOAI_MON_AN('Món chiên','Đây là mô tả của món chiên');
+#call THEM_LOAI_MON_AN('Món xào','Đây là mô tả của món xào');
+#call THEM_LOAI_MON_AN('Món hấp','Đây là mô tả của món hấp');
+#call THEM_LOAI_MON_AN('Món luộc','Đây là mô tả của món luộc');
+#select * from LOAI_MON_AN ;
+#select * from LOAI_MON_AN order by length(LMA_MALOAI); sap xep theo thu tu tu tren xuong cua ma loai
+#truncate  LOAI_MON_AN; #xoa bang
 ################################
 create table MON_AN(
 	count int invisible,
@@ -51,6 +87,8 @@ create table CHI_TIET_MON_AN(
 	CTMA_KHAUPHAN tinyint default 1,
 	constraint MAMON_check check (regexp_like(REGEXP_SUBSTR(CTMA_MACT,'(?<=CTMA)[0-9]{1,8}'),REGEXP_SUBSTR(MA_MAMON,'(?<=MA)[0-9]{1,8}' )))
 );
+
+
 #ALTER TABLE CHI_TIET_MON_AN ADD  constraint MAMON_exist check (regexp_like(REGEXP_SUBSTR(CTMA_MACT,'(?<=CTMA)[0-9]{1,8}'),REGEXP_SUBSTR(MA_MAMON,'(?<=MA)[0-9]{1,8}' )));
 drop function if exists ktma;
 DELIMITER |
@@ -142,6 +180,9 @@ create table KHACH_HANG(
     KH_MATKHAU char(40), #^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,32}$,
 	KH_TRANGTHAI tinyint default 1
 );
+
+ALTER TABLE khach_hang DROP  constraint KH_SDT_format ;
+
 drop procedure if exists THEM_KHACH_HANG;
 DELIMITER |
 create procedure THEM_KHACH_HANG(
@@ -158,14 +199,15 @@ create procedure THEM_KHACH_HANG(
     END IF;
  
     insert into KHACH_HANG (count,KH_MAKH, KH_TENKH , KH_SDT, KH_EMAIL, KH_MATKHAU) values 
-    ( countvar, concat('KH',countvar),KH_TENKH, KH_SDT, KH_EMAIL, sha(KH_MATKHAU) );
+    ( countvar, concat('KH',countvar),KH_TENKH, KH_SDT, KH_EMAIL, (KH_MATKHAU) );
 end |
-DELIMITER ;
-#call THEM_KHACH_HANG ('Khách Hàng Một', '123-456-7890', 'khachang1@gmail.com', 'matkhaukh1');
+DELIMITER;
+call THEM_KHACH_HANG ('Khách Hàng Một', '123-456-7890', 'khachang1@gmail.com', 'matkhaukh1');
 #call THEM_KHACH_HANG ('Khách Hàng Hai', '223-456-7890', 'khachang2@gmail.com', 'matkhaukh2');
 #call THEM_KHACH_HANG ('Khách Hàng Ba', '323-456-7890', 'khachang3@gmail.com', 'matkhaukh3');
 #call THEM_KHACH_HANG ('Khách Hàng Bốn', '423-456-7890', 'khachang4@gmail.com', 'matkhaukh4');
 #call THEM_KHACH_HANG ('Khách Hàng Năm', '523-456-7890', 'khachang5@gmail.com', 'matkhaukh5');
+
 #select * from khach_hang;
 #insert into KHACH_HANG (KH_MAKH, KH_TENKH, KH_SDT, KH_DIACHI, KH_EMAIL, KH_MATKHAU) values 
 #('KH1','Khách Hàng Môt', '123-456-7890', 'Địa chỉ của Khách Hàng Một','khachang1@gmail.com', MD5('matkhaukh1'));
@@ -190,7 +232,7 @@ create table DIA_CHI(
     DC_TENQUANHUYEN varchar(32),
     DC_SONHA varchar(10)
 );
-drop procedure if exists THEM_DIA_CHI;
+
 DELIMITER |
 create procedure THEM_DIA_CHI(
    KH_MAKH varchar(20),
@@ -257,76 +299,6 @@ DELIMITER ;
 #insert into NHAN_VIEN_PHU_TRACH (NVPT_MANV, NVPT_TENNV, NVPT_SDT, NVPT_MATKHAU) values ('NV4','Nhân Viên Bốn', '687-654-3210', MD5('matkhaunv4'));
 #insert into NHAN_VIEN_PHU_TRACH (NVPT_MANV, NVPT_TENNV, NVPT_SDT, NVPT_MATKHAU) values ('NV5','Nhân Viên Năm', '587-654-3210', MD5('matkhaunv5'));
 
-##################################
-
-create table DON_DAT_MON(
-	count int invisible,
-    DDM_MADON varchar(21) primary key constraint MADON_format check (regexp_like(DDM_MADON,'(^DDM[0-9]{1,18}$)' )),
-	KH_MAKH varchar(20),
-	constraint KH_DATMON FOREIGN KEY (KH_MAKH)  REFERENCES KHACH_HANG(KH_MAKH),
-	NVPT_MANV varchar(10),
-	constraint NVPT_DDM FOREIGN KEY (NVPT_MANV)  REFERENCES NHAN_VIEN_PHU_TRACH(NVPT_MANV),
-    DDM_NGAYGIO timestamp default CURRENT_TIMESTAMP,
-    DDM_TONGTIEN int not null ,
-    DDM_TRANGTHAI varchar(30) default 'Chờ xác nhận'
-);
-#select * from DON_DAT_MON;
-#insert into DON_DAT_MON  (DDM_MADON, KH_MAKH, NVPT_MANV, DDM_TONGTIEN) values ('DDM1','KH1','NV5','500000');
-#insert into DON_DAT_MON  (DDM_MADON, KH_MAKH, NVPT_MANV,DDM_NGAYGIO, DDM_TONGTIEN) values ('DDM6','KH1','NV5','08-09 5:25:04','500000');
-#truncate DON_DAT_MON;
-drop procedure if exists THEM_DON_DAT_MON;
-DELIMITER |
-create procedure THEM_DON_DAT_MON(
-    KH_MAKH varchar(18),
-    NVPT_MANV varchar(8),
-	DDM_TONGTIEN int
-    )
- begin
-  	DECLARE countvar int;
-	IF(EXISTS(SELECT count FROM DON_DAT_MON ORDER BY count DESC LIMIT 1 )) THEN
-    SET countvar= ((SELECT count FROM DON_DAT_MON ORDER BY count DESC LIMIT 1) + 1) ;
-	ELSE SET countvar= 1 ;
-    END IF;
-    insert into DON_DAT_MON (count, DDM_MADON, KH_MAKH, NVPT_MANV, DDM_TONGTIEN) 
-    values (countvar, concat('DDM',countvar), concat('KH',KH_MAKH), concat('NV',NVPT_MANV), DDM_TONGTIEN);
-end |
-DELIMITER ;
-#select * from Nhan_vien_phu_trach;
-#select * from DON_DAT_MON;
-#select * from KHACH_HANG;
-#call THEM_DON_DAT_MON(1,1,200000);
-#call THEM_DON_DAT_MON(1,1,200000);
-#call THEM_DON_DAT_MON(1,1,200000);
-#call THEM_DON_DAT_MON(2,4,200000);
-#call THEM_DON_DAT_MON(3,3,200000);
-#call THEM_DON_DAT_MON(4,3,200000);
-#truncate don_dat_mon;
-drop procedure if exists THEM_DON_DAT_MON_DD;#day du
-DELIMITER |
-create procedure THEM_DON_DAT_MON_DD(
-    KH_MAKH varchar(18),
-    NVPT_MANV varchar(8),
-    DDM_NGAYGIO timestamp,
-	DDM_TONGTIEN int,
-	DDM_TRANGTHAI varchar(30)
-    )
- begin
-  	DECLARE countvar int;
-	IF(EXISTS(SELECT count FROM DON_DAT_MON ORDER BY count DESC LIMIT 1 )) THEN
-    SET countvar= ((SELECT count FROM DON_DAT_MON ORDER BY count DESC LIMIT 1) + 1) ;
-	ELSE SET countvar= 1 ;
-    END IF;
-    insert into DON_DAT_MON (count, DDM_MADON, KH_MAKH, NVPT_MANV, DDM_NGAYGIO, DDM_TONGTIEN, DDM_TRANGTHAI) 
-    values (countvar, concat('DDM',countvar), concat('KH',KH_MAKH), concat('NV',NVPT_MANV), DDM_NGAYGIO, DDM_TONGTIEN, DDM_TRANGTHAI);
-end |
-DELIMITER ;
-
-#truncate DON_DAT_MON;
-#call THEM_DON_DAT_MON_DD (4,4,'2019-9-8 10:00:01',123456,'Đã hoàn thành');
-#call THEM_DON_DAT_MON_DD (2,4,'2012-9-8 10:00:01',1233156,'Đang vận chuyển');
-#call THEM_DON_DAT_MON_DD (4,4,'2015-9-8 10:00:01',1234556,'Đã hủy');
-#select * from DON_DAT_MON;
-#drop table DON_DAT_MON;
 ##################################
 create table BINH_LUAN(	
 	count int invisible,
@@ -441,10 +413,49 @@ create procedure TIM_MON_AN_THEO_TK(
     ;
 end |
 DELIMITER ;
-call TIM_MON_AN_THEO_TK("Cá"); #theo từ khóa. sử dụng like %T_K%
-use nien_luan;
+#call TIM_MON_AN_THEO_TK("Cá"); #theo từ khóa. sử dụng like %T_K%
+#use nien_luan;
 
-
-
-
-
+drop procedure if exists TIM_KHACH_HANG_THEO_TEN;
+DELIMITER |
+create procedure TIM_KHACH_HANG_THEO_TEN(
+	KH_TENKHH varchar(50)
+    )
+ begin
+	select * from KHACH_HANG kh left join DIA_CHI dc on kh.KH_MAKH  = dc.KH_MAKH 
+    where KH_TENKH like CONCAT('%', KH_TENKHH , '%')	
+    ;
+end |
+DELIMITER ;
+#call TIM_KHACH_HANG_THEO_TEN("khach_hang 1");
+/*
+drop procedure if exists TIM_KHACH_HANG_THEO_SDT;
+DELIMITER |
+create procedure TIM_KHACH_HANG_THEO_SDT(
+	KH_SDTT char(12)
+    )
+ begin
+	select * from KHACH_HANG kh left join DIA_CHI dc on kh.KH_MAKH  = dc.KH_MAKH 
+    where KH_SDT like CONCAT('%', KH_SDTT , '%')	
+    ;
+end |
+DELIMITER ;
+call TIM_KHACH_HANG_THEO_SDT("1231231234");
+drop function if exists DANG_NHAP;
+DELIMITER |
+create function DANG_NHAP(
+    SDTT char(12),
+    PASSWORDD varchar(32)
+    )
+ returns int
+ DETERMINISTIC
+ begin
+  	declare result int;
+    set result =0;
+    if EXISTS (SELECT KH_SDT FROM KHACH_HANG where KH_SDT = SDTT)
+    and EXISTS (SELECT KH_MATKHAU FROM KHACH_HANG where md5(PASSWORDD) = KH_MATKHAU   )
+    then set result = 1;
+	end if;
+    return result;
+end |
+DELIMITER ;*/
