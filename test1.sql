@@ -102,7 +102,7 @@ create function ktma(
     return EXISTS (SELECT MA_MAMON FROM CHI_TIET_MON_AN where MA_MAMON = MA_MAMONN  LIMIT 1);
 end |
 DELIMITER ;
-select * from chi_tiet_mon_an;
+#select * from chi_tiet_mon_an;
 drop procedure if exists THEM_CHI_TIET_MON_AN;
 DELIMITER |
 create procedure THEM_CHI_TIET_MON_AN(
@@ -184,7 +184,7 @@ drop procedure if exists THEM_KHACH_HANG;
 DELIMITER |
 create procedure THEM_KHACH_HANG(
 	KH_TENKH varchar(32),
-    KH_SDT char(12),
+    KH_SDT char(10),
     KH_EMAIL varchar(50),
     KH_MATKHAU varchar(32)
     )
@@ -194,7 +194,6 @@ create procedure THEM_KHACH_HANG(
     SET countvar= ((SELECT count FROM KHACH_HANG ORDER BY count DESC LIMIT 1) + 1) ;
 	ELSE SET countvar= 1 ;
     END IF;
- 
     insert into KHACH_HANG (count,KH_MAKH, KH_TENKH , KH_SDT, KH_EMAIL, KH_MATKHAU) values 
     ( countvar, concat('KH',countvar),KH_TENKH, KH_SDT, KH_EMAIL, sha(KH_MATKHAU) );
 end |
@@ -553,8 +552,8 @@ create procedure DANG_NHAP(
     end if;
 end |
 DELIMITER ;
-call dang_nhap("1234567890","MK1");
-select dang_nhap("2234567890","MK2");
+#call dang_nhap("1234567890","MK1");
+#select dang_nhap("2234567890","MK2");
 ##
 drop procedure if exists CAP_NHAT_KHACH_HANG;
 DELIMITER |
@@ -585,7 +584,7 @@ create procedure TIM_LOAI_MON_AN_THEO_TEN(
     ;
 end |
 DELIMITER ;
-call TIM_LOAI_MON_AN_THEO_TEN('Nuong');
+#call TIM_LOAI_MON_AN_THEO_TEN('Nuong');
 ##
 drop procedure if exists CAP_NHAT_LOAI_MON_AN;
 DELIMITER |
